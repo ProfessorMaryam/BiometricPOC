@@ -1,50 +1,64 @@
-# Welcome to your Expo app 👋
+# BiometricPOC
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A proof of concept demonstrating how biometric authentication works on native mobile devices. The goal of this project is to show how fingerprint and face recognition can be integrated into a React Native app using the device's built-in biometric hardware, with a Spring Boot backend handling user registration, login, and session management.
 
-## Get started
+## What this demonstrates
 
-1. Install dependencies
+- How native biometric prompts (fingerprint / Face ID) are triggered from a mobile app
+- The app never stores or processes biometric data — the OS handles everything using hardware already enrolled on the device (set up in phone Settings)
+- A fallback PIN flow when biometrics fail or are cancelled
+- JWT-based authentication with token storage in SecureStore
+- Per-user biometric preference persisted in a backend database
 
-   ```bash
-   npm install
-   ```
+## Authentication flow
 
-2. Start the app
+1. **Register** — create an account with email, full name, and password
+2. **Set up PIN** — choose a 6-digit PIN saved to the backend
+3. **Enable biometrics** — opt in to fingerprint/face login (uses whatever is enrolled in phone Settings)
+4. **Login** — enter credentials; if biometrics are enabled, the fingerprint/face prompt appears immediately after validation
+   - Success → home screen
+   - Fail / cancel → PIN entry screen
 
-   ```bash
-   npx expo start
-   ```
+## Tech stack
 
-In the output, you'll find options to open the app in a
+| Layer | Technology |
+|---|---|
+| Mobile | React Native (Expo), expo-local-authentication, expo-secure-store |
+| Routing | Expo Router (file-based) |
+| Backend | Spring Boot 4, JDBC, H2 (in-memory) |
+| Auth | JWT (jjwt 0.12) |
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Platform notes
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- **Android**: biometrics work in Expo Go and in production APKs
+- **iOS**: biometrics require a custom development build — Expo Go on iOS does not support `LocalAuthentication` due to missing `NSFaceIDUsageDescription` entitlement. Use `eas build --platform ios --profile development` or test on the iOS simulator via Features → Face ID → Matching Face
 
-## Get a fresh project
+## Running the project
 
-When you're ready, run:
+### Backend
 
 ```bash
-npm run reset-project
+cd backend/demo
+./mvnw spring-boot:run
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Runs on `http://localhost:8080`. Update `BASE_URL` in `services/api.ts` to your machine's local IP if testing on a physical device.
 
-## Learn more
+### Frontend
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+npm install
+npx expo start
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Scan the QR code with Expo Go (Android) or run on a simulator.
 
-## Join the community
+## API endpoints
 
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+| Method | Path | Description |
+|---|---|---|
+| POST | /auth/register | Register a new user |
+| POST | /auth/login | Login and receive JWT |
+| POST | /auth/pin | Save user PIN |
+| POST | /auth/verify-pin | Verify PIN for fallback login |
+| POST | /auth/biometric | Update biometric preference |
