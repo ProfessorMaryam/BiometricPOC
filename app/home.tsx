@@ -1,6 +1,15 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
+import { clearSession } from '@/services/auth';
 
 export default function HomeScreen() {
+  const router = useRouter();
+
+  async function handleLogout() {
+    await clearSession();
+    router.replace('/login');
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.badge}>
@@ -8,6 +17,10 @@ export default function HomeScreen() {
       </View>
       <Text style={styles.title}>You have access to the application now!!</Text>
       <Text style={styles.subtitle}>Home screen placeholder</Text>
+
+      <TouchableOpacity style={styles.btn} onPress={handleLogout} activeOpacity={0.85}>
+        <Text style={styles.btnText}>Log Out</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -38,5 +51,13 @@ const styles = StyleSheet.create({
     lineHeight: 34,
     marginBottom: 10,
   },
-  subtitle: { fontSize: 14, color: '#9CA3AF' },
+  subtitle: { fontSize: 14, color: '#9CA3AF', marginBottom: 48 },
+  btn: {
+    backgroundColor: '#E53E3E',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 40,
+    alignItems: 'center',
+  },
+  btnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
 });

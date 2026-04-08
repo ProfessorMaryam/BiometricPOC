@@ -9,6 +9,8 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { savePin } from '@/services/api';
+import { getEmail } from '@/services/auth';
 
 const PIN_LENGTH = 6;
 
@@ -36,8 +38,10 @@ export default function SetupPinScreen() {
         const next = confirm + digit;
         setConfirm(next);
         if (next.length === PIN_LENGTH) {
-          setTimeout(() => {
+          setTimeout(async () => {
             if (next === pin) {
+              const email = await getEmail();
+              if (email) await savePin(email, next);
               router.push('/setup-biometrics');
             } else {
               setError('PINs do not match. Please try again.');

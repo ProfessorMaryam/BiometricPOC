@@ -47,6 +47,24 @@ public class UserRepository {
         return results.isEmpty() ? Optional.empty() : Optional.of(results.get(0));
     }
 
+    public void updatePin(String email, int pin) {
+        jdbc.update("UPDATE users SET pin = ? WHERE email = ?", pin, email);
+    }
+
+    public boolean verifyPin(String email, int pin) {
+        return findByEmail(email)
+            .map(u -> u.getPin() != null && u.getPin() == pin)
+            .orElse(false);
+    }
+
+    public void updateBiometricEnabled(String email, boolean enabled) {
+        jdbc.update(
+            "UPDATE users SET biometric_enabled = ? WHERE email = ?",
+            enabled ? 1 : 0,
+            email
+        );
+    }
+
     public boolean existsByEmail(String email) {
         Integer count = jdbc.queryForObject(
             "SELECT COUNT(*) FROM users WHERE email = ?",

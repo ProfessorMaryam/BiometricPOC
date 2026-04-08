@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { loginUser } from '@/services/api';
+import { saveToken, saveEmail, setBiometricsEnabled } from '@/services/auth';
+import * as LocalAuthentication from 'expo-local-authentication';
 
 import {
   View,
@@ -35,18 +37,41 @@ export default function LoginScreen() {
     return e;
   }
 
-async function handleLogin() {
-  const e = validate();
-  if (Object.keys(e).length > 0) { setErrors(e); return; }
+  async function handleLogin() {
+    const e = validate();
+    if (Object.keys(e).length > 0) { setErrors(e); return; }
 
-  try {
-    const user = await loginUser(email, password);
-    console.log('Logged in as', user.fullName);
-    router.replace('/home');
-  } catch (err: any) {
-    setErrors({ password: err.message });
+    try {
+      const user = await loginUser(email, password);
+      if (user.token) await saveToken(user.token);
+      await saveEmail(user.email);
+      await setBiometricsEnabled(user.biometricEnabled);
+
+      if (user.biometricEnabled) {
+        const hardware = await LocalAuthentication.hasHardwareAsync();
+        const enrolled = await LocalAuthentication.isEnrolledAsync();
+
+        if (hardware && enrolled) {
+          const result = await LocalAuthentication.authenticateAsync({
+            promptMessage: 'Authenticate to continue',
+            cancelLabel: 'Cancel',
+            disableDeviceFallback: true,
+          });
+
+          if (result.success) {
+            router.replace('/home');
+          } else {
+            router.replace('/verify-pin');
+          }
+          return;
+        }
+      }
+
+      router.replace('/home');
+    } catch (err: any) {
+      setErrors({ password: err.message });
+    }
   }
-}
 
   return (
     <KeyboardAvoidingView

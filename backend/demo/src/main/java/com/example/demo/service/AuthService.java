@@ -25,6 +25,18 @@ public class AuthService {
         return userRepository.findByEmail(email).orElseThrow();
     }
 
+    public void savePin(String email, int pin) {
+        userRepository.updatePin(email, pin);
+    }
+
+    public boolean verifyPin(String email, int pin) {
+        return userRepository.verifyPin(email, pin);
+    }
+
+    public void updateBiometricEnabled(String email, boolean enabled) {
+        userRepository.updateBiometricEnabled(email, enabled);
+    }
+
     public User login(String email, String password) {
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new IllegalArgumentException("Invalid email or password."));

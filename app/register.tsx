@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { registerUser } from '@/services/api';
+import { saveToken, saveEmail } from '@/services/auth';
 import {
   View,
   Text,
@@ -56,7 +57,8 @@ export default function RegisterScreen() {
 
   try {
     const user = await registerUser(form.email, form.fullName, form.password);
-    console.log('Registered as', user.fullName);
+    if (user.token) await saveToken(user.token);
+    await saveEmail(user.email);
     router.push('/setup-pin');
   } catch (err: any) {
     setErrors({ email: err.message }); // show server error under email field

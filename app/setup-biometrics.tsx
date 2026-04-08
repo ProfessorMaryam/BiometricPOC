@@ -1,11 +1,15 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { setBiometricsEnabled, getEmail } from '@/services/auth';
+import { updateBiometricPreference } from '@/services/api';
 
 export default function SetupBiometricsScreen() {
   const router = useRouter();
 
-  function handleChoice(enabled: boolean) {
-    // TODO: save preference to backend
+  async function handleChoice(enabled: boolean) {
+    await setBiometricsEnabled(enabled);
+    const email = await getEmail();
+    if (email) await updateBiometricPreference(email, enabled);
     router.replace('/home');
   }
 
